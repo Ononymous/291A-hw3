@@ -11,7 +11,7 @@ class UpdatesTest < ActionDispatch::IntegrationTest
 
   test "GET /api/conversations/updates returns updated conversations" do
     conversation = Conversation.create!(title: "Test", initiator: @user, status: "waiting")
-    
+
     get "/api/conversations/updates",
         params: { userId: @user.id },
         headers: { "Authorization" => "Bearer #{@token}" }
@@ -36,10 +36,10 @@ class UpdatesTest < ActionDispatch::IntegrationTest
   test "GET /api/conversations/updates filters by since timestamp" do
     old_conversation = Conversation.create!(title: "Old", initiator: @user, status: "waiting")
     old_conversation.update_column(:updated_at, 2.days.ago)
-    
+
     since_time = 1.day.ago
     new_conversation = Conversation.create!(title: "New", initiator: @user, status: "waiting")
-    
+
     get "/api/conversations/updates",
         params: { userId: @user.id, since: since_time.iso8601 },
         headers: { "Authorization" => "Bearer #{@token}" }
@@ -51,7 +51,7 @@ class UpdatesTest < ActionDispatch::IntegrationTest
 
   test "GET /api/conversations/updates includes conversations as initiator" do
     conversation = Conversation.create!(title: "As Initiator", initiator: @user, status: "waiting")
-    
+
     get "/api/conversations/updates",
         params: { userId: @user.id },
         headers: { "Authorization" => "Bearer #{@token}" }
@@ -62,7 +62,7 @@ class UpdatesTest < ActionDispatch::IntegrationTest
 
   test "GET /api/conversations/updates includes conversations as assigned expert" do
     conversation = Conversation.create!(title: "As Expert", initiator: @user, status: "active", assigned_expert: @expert)
-    
+
     get "/api/conversations/updates",
         params: { userId: @expert.id },
         headers: { "Authorization" => "Bearer #{@expert_token}" }
@@ -77,7 +77,7 @@ class UpdatesTest < ActionDispatch::IntegrationTest
     conv2 = Conversation.create!(title: "Second", initiator: @user, status: "waiting")
     sleep 0.01
     conv3 = Conversation.create!(title: "Third", initiator: @user, status: "waiting")
-    
+
     get "/api/conversations/updates",
         params: { userId: @user.id },
         headers: { "Authorization" => "Bearer #{@token}" }
@@ -91,7 +91,7 @@ class UpdatesTest < ActionDispatch::IntegrationTest
   test "GET /api/messages/updates returns new messages" do
     conversation = Conversation.create!(title: "Test", initiator: @user, status: "active", assigned_expert: @expert)
     message = Message.create!(conversation: conversation, sender: @expert, sender_role: "expert", content: "Test message")
-    
+
     get "/api/messages/updates",
         params: { userId: @user.id },
         headers: { "Authorization" => "Bearer #{@token}" }
@@ -117,10 +117,10 @@ class UpdatesTest < ActionDispatch::IntegrationTest
     conversation = Conversation.create!(title: "Test", initiator: @user, status: "active", assigned_expert: @expert)
     old_message = Message.create!(conversation: conversation, sender: @user, sender_role: "initiator", content: "Old message")
     old_message.update_column(:created_at, 2.days.ago)
-    
+
     since_time = 1.day.ago
     new_message = Message.create!(conversation: conversation, sender: @expert, sender_role: "expert", content: "New message")
-    
+
     get "/api/messages/updates",
         params: { userId: @user.id, since: since_time.iso8601 },
         headers: { "Authorization" => "Bearer #{@token}" }
@@ -134,10 +134,10 @@ class UpdatesTest < ActionDispatch::IntegrationTest
     user_conversation = Conversation.create!(title: "User Conv", initiator: @user, status: "waiting")
     other_user = User.create!(username: "otheruser", password: "password123")
     other_conversation = Conversation.create!(title: "Other Conv", initiator: other_user, status: "waiting")
-    
+
     user_message = Message.create!(conversation: user_conversation, sender: @user, sender_role: "initiator", content: "User message")
     other_message = Message.create!(conversation: other_conversation, sender: other_user, sender_role: "initiator", content: "Other message")
-    
+
     get "/api/messages/updates",
         params: { userId: @user.id },
         headers: { "Authorization" => "Bearer #{@token}" }
@@ -154,7 +154,7 @@ class UpdatesTest < ActionDispatch::IntegrationTest
     msg2 = Message.create!(conversation: conversation, sender: @expert, sender_role: "expert", content: "Second")
     sleep 0.01
     msg3 = Message.create!(conversation: conversation, sender: @user, sender_role: "initiator", content: "Third")
-    
+
     get "/api/messages/updates",
         params: { userId: @user.id },
         headers: { "Authorization" => "Bearer #{@token}" }
@@ -168,7 +168,7 @@ class UpdatesTest < ActionDispatch::IntegrationTest
   test "GET /api/expert-queue/updates returns queue updates" do
     waiting_conv = Conversation.create!(title: "Waiting", initiator: @user, status: "waiting")
     assigned_conv = Conversation.create!(title: "Assigned", initiator: @user, status: "active", assigned_expert: @expert)
-    
+
     get "/api/expert-queue/updates",
         params: { expertId: @expert.id },
         headers: { "Authorization" => "Bearer #{@expert_token}" }
@@ -195,10 +195,10 @@ class UpdatesTest < ActionDispatch::IntegrationTest
   test "GET /api/expert-queue/updates filters by since timestamp" do
     old_conv = Conversation.create!(title: "Old", initiator: @user, status: "waiting")
     old_conv.update_column(:updated_at, 2.days.ago)
-    
+
     since_time = 1.day.ago
     new_conv = Conversation.create!(title: "New", initiator: @user, status: "waiting")
-    
+
     get "/api/expert-queue/updates",
         params: { expertId: @expert.id, since: since_time.iso8601 },
         headers: { "Authorization" => "Bearer #{@expert_token}" }
@@ -214,7 +214,7 @@ class UpdatesTest < ActionDispatch::IntegrationTest
     conv2 = Conversation.create!(title: "Second", initiator: @user, status: "waiting")
     sleep 0.01
     conv3 = Conversation.create!(title: "Third", initiator: @user, status: "waiting")
-    
+
     get "/api/expert-queue/updates",
         params: { expertId: @expert.id },
         headers: { "Authorization" => "Bearer #{@expert_token}" }
@@ -232,7 +232,7 @@ class UpdatesTest < ActionDispatch::IntegrationTest
     sleep 0.01
     conv3 = Conversation.create!(title: "Third", initiator: @user, status: "active", assigned_expert: @expert)
     conv1.touch # Make it most recent
-    
+
     get "/api/expert-queue/updates",
         params: { expertId: @expert.id },
         headers: { "Authorization" => "Bearer #{@expert_token}" }
@@ -246,7 +246,7 @@ class UpdatesTest < ActionDispatch::IntegrationTest
   test "GET /api/expert-queue/updates only returns active status for assigned conversations" do
     active_conv = Conversation.create!(title: "Active", initiator: @user, status: "active", assigned_expert: @expert)
     resolved_conv = Conversation.create!(title: "Resolved", initiator: @user, status: "resolved", assigned_expert: @expert)
-    
+
     get "/api/expert-queue/updates",
         params: { expertId: @expert.id },
         headers: { "Authorization" => "Bearer #{@expert_token}" }

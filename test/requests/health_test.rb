@@ -26,11 +26,11 @@ class HealthTest < ActionDispatch::IntegrationTest
     before_time = 1.second.ago
     get "/health"
     after_time = 1.second.from_now
-    
+
     assert_response :ok
     response_data = JSON.parse(response.body)
     timestamp = Time.iso8601(response_data["timestamp"])
-    
+
     assert timestamp >= before_time
     assert timestamp <= after_time
   end

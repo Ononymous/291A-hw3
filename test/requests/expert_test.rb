@@ -4,7 +4,7 @@ class ExpertTest < ActionDispatch::IntegrationTest
   def setup
     @user = User.create!(username: "testuser", password: "password123")
     @expert = User.create!(username: "expertuser", password: "password123")
-    @expert_profile = ExpertProfile.create!(user: @expert, bio: "Expert developer", knowledge_base_links: ["https://example.com"])
+    @expert_profile = ExpertProfile.create!(user: @expert, bio: "Expert developer", knowledge_base_links: [ "https://example.com" ])
     @token = JwtService.encode(@user)
     @expert_token = JwtService.encode(@expert)
   end
@@ -12,7 +12,7 @@ class ExpertTest < ActionDispatch::IntegrationTest
   test "GET /expert/queue returns waiting and assigned conversations" do
     waiting_conv = Conversation.create!(title: "Waiting Conversation", initiator: @user, status: "waiting")
     assigned_conv = Conversation.create!(title: "Assigned Conversation", initiator: @user, status: "active", assigned_expert: @expert)
-    
+
     get "/expert/queue", headers: { "Authorization" => "Bearer #{@expert_token}" }
     assert_response :ok
     response_data = JSON.parse(response.body)
@@ -31,7 +31,7 @@ class ExpertTest < ActionDispatch::IntegrationTest
     non_expert = User.create!(username: "nonexpert", password: "password123")
     non_expert.expert_profile.destroy if non_expert.expert_profile
     non_expert_token = JwtService.encode(non_expert)
-    
+
     get "/expert/queue", headers: { "Authorization" => "Bearer #{non_expert_token}" }
     assert_response :forbidden
   end
@@ -42,7 +42,7 @@ class ExpertTest < ActionDispatch::IntegrationTest
     conv2 = Conversation.create!(title: "Second", initiator: @user, status: "waiting")
     sleep 0.01
     conv3 = Conversation.create!(title: "Third", initiator: @user, status: "waiting")
-    
+
     get "/expert/queue", headers: { "Authorization" => "Bearer #{@expert_token}" }
     assert_response :ok
     waiting = JSON.parse(response.body)["waitingConversations"]
@@ -58,7 +58,7 @@ class ExpertTest < ActionDispatch::IntegrationTest
     sleep 0.01
     conv3 = Conversation.create!(title: "Third", initiator: @user, status: "active", assigned_expert: @expert)
     conv1.touch # Update to make it most recent
-    
+
     get "/expert/queue", headers: { "Authorization" => "Bearer #{@expert_token}" }
     assert_response :ok
     assigned = JSON.parse(response.body)["assignedConversations"]
@@ -69,12 +69,12 @@ class ExpertTest < ActionDispatch::IntegrationTest
 
   test "POST /expert/conversations/:conversation_id/claim claims conversation" do
     conversation = Conversation.create!(title: "Test", initiator: @user, status: "waiting")
-    
+
     post "/expert/conversations/#{conversation.id}/claim", headers: { "Authorization" => "Bearer #{@expert_token}" }
     assert_response :ok
     response_data = JSON.parse(response.body)
     assert response_data["success"]
-    
+
     conversation.reload
     assert_equal @expert.id, conversation.assigned_expert_id
     assert_equal "active", conversation.status
@@ -82,11 +82,11 @@ class ExpertTest < ActionDispatch::IntegrationTest
 
   test "POST /expert/conversations/:conversation_id/claim creates expert assignment" do
     conversation = Conversation.create!(title: "Test", initiator: @user, status: "waiting")
-    
+
     assert_difference("ExpertAssignment.count", 1) do
       post "/expert/conversations/#{conversation.id}/claim", headers: { "Authorization" => "Bearer #{@expert_token}" }
     end
-    
+
     assignment = ExpertAssignment.last
     assert_equal conversation.id, assignment.conversation_id
     assert_equal @expert.id, assignment.expert_id
@@ -104,7 +104,7 @@ class ExpertTest < ActionDispatch::IntegrationTest
     non_expert.expert_profile.destroy if non_expert.expert_profile
     non_expert_token = JwtService.encode(non_expert)
     conversation = Conversation.create!(title: "Test", initiator: @user, status: "waiting")
-    
+
     post "/expert/conversations/#{conversation.id}/claim", headers: { "Authorization" => "Bearer #{non_expert_token}" }
     assert_response :forbidden
   end
@@ -113,7 +113,7 @@ class ExpertTest < ActionDispatch::IntegrationTest
     other_expert = User.create!(username: "otherexpert", password: "password123")
     ExpertProfile.create!(user: other_expert, bio: "Other expert")
     conversation = Conversation.create!(title: "Test", initiator: @user, status: "active", assigned_expert: other_expert)
-    
+
     post "/expert/conversations/#{conversation.id}/claim", headers: { "Authorization" => "Bearer #{@expert_token}" }
     assert_response :unprocessable_entity
     response_data = JSON.parse(response.body)
@@ -123,12 +123,12 @@ class ExpertTest < ActionDispatch::IntegrationTest
   test "POST /expert/conversations/:conversation_id/unclaim unclaims conversation" do
     conversation = Conversation.create!(title: "Test", initiator: @user, status: "active", assigned_expert: @expert)
     assignment = ExpertAssignment.create!(conversation: conversation, expert: @expert, status: "active")
-    
+
     post "/expert/conversations/#{conversation.id}/unclaim", headers: { "Authorization" => "Bearer #{@expert_token}" }
     assert_response :ok
     response_data = JSON.parse(response.body)
     assert response_data["success"]
-    
+
     conversation.reload
     assert_nil conversation.assigned_expert_id
     assert_equal "waiting", conversation.status
@@ -137,10 +137,10 @@ class ExpertTest < ActionDispatch::IntegrationTest
   test "POST /expert/conversations/:conversation_id/unclaim updates assignment to resolved" do
     conversation = Conversation.create!(title: "Test", initiator: @user, status: "active", assigned_expert: @expert)
     assignment = ExpertAssignment.create!(conversation: conversation, expert: @expert, status: "active")
-    
+
     post "/expert/conversations/#{conversation.id}/unclaim", headers: { "Authorization" => "Bearer #{@expert_token}" }
     assert_response :ok
-    
+
     assignment.reload
     assert_equal "resolved", assignment.status
     assert_not_nil assignment.resolved_at
@@ -156,7 +156,7 @@ class ExpertTest < ActionDispatch::IntegrationTest
     other_expert = User.create!(username: "otherexpert", password: "password123")
     ExpertProfile.create!(user: other_expert, bio: "Other expert")
     conversation = Conversation.create!(title: "Test", initiator: @user, status: "active", assigned_expert: other_expert)
-    
+
     post "/expert/conversations/#{conversation.id}/unclaim", headers: { "Authorization" => "Bearer #{@expert_token}" }
     assert_response :forbidden
     response_data = JSON.parse(response.body)
@@ -170,7 +170,7 @@ class ExpertTest < ActionDispatch::IntegrationTest
     assert_equal @expert_profile.id.to_s, response_data["id"]
     assert_equal @expert.id.to_s, response_data["userId"]
     assert_equal "Expert developer", response_data["bio"]
-    assert_equal ["https://example.com"], response_data["knowledgeBaseLinks"]
+    assert_equal [ "https://example.com" ], response_data["knowledgeBaseLinks"]
   end
 
   test "GET /expert/profile requires authentication" do
@@ -182,23 +182,23 @@ class ExpertTest < ActionDispatch::IntegrationTest
     non_expert = User.create!(username: "nonexpert", password: "password123")
     non_expert.expert_profile.destroy if non_expert.expert_profile
     non_expert_token = JwtService.encode(non_expert)
-    
+
     get "/expert/profile", headers: { "Authorization" => "Bearer #{non_expert_token}" }
     assert_response :forbidden
   end
 
   test "PUT /expert/profile updates expert profile" do
     put "/expert/profile",
-        params: { bio: "Updated bio", knowledge_base_links: ["https://newlink.com"] },
+        params: { bio: "Updated bio", knowledge_base_links: [ "https://newlink.com" ] },
         headers: { "Authorization" => "Bearer #{@expert_token}" }
     assert_response :ok
     response_data = JSON.parse(response.body)
     assert_equal "Updated bio", response_data["bio"]
-    assert_equal ["https://newlink.com"], response_data["knowledgeBaseLinks"]
-    
+    assert_equal [ "https://newlink.com" ], response_data["knowledgeBaseLinks"]
+
     @expert_profile.reload
     assert_equal "Updated bio", @expert_profile.bio
-    assert_equal ["https://newlink.com"], @expert_profile.knowledge_base_links
+    assert_equal [ "https://newlink.com" ], @expert_profile.knowledge_base_links
   end
 
   test "PUT /expert/profile requires authentication" do
@@ -210,7 +210,7 @@ class ExpertTest < ActionDispatch::IntegrationTest
     non_expert = User.create!(username: "nonexpert", password: "password123")
     non_expert.expert_profile.destroy if non_expert.expert_profile
     non_expert_token = JwtService.encode(non_expert)
-    
+
     put "/expert/profile",
         params: { bio: "Test" },
         headers: { "Authorization" => "Bearer #{non_expert_token}" }
@@ -225,7 +225,7 @@ class ExpertTest < ActionDispatch::IntegrationTest
       status: "resolved",
       resolved_at: Time.current
     )
-    
+
     get "/expert/assignments/history", headers: { "Authorization" => "Bearer #{@expert_token}" }
     assert_response :ok
     response_data = JSON.parse(response.body)
@@ -245,7 +245,7 @@ class ExpertTest < ActionDispatch::IntegrationTest
     non_expert = User.create!(username: "nonexpert", password: "password123")
     non_expert.expert_profile.destroy if non_expert.expert_profile
     non_expert_token = JwtService.encode(non_expert)
-    
+
     get "/expert/assignments/history", headers: { "Authorization" => "Bearer #{non_expert_token}" }
     assert_response :forbidden
   end
@@ -254,11 +254,11 @@ class ExpertTest < ActionDispatch::IntegrationTest
     conv1 = Conversation.create!(title: "First", initiator: @user, status: "resolved")
     conv2 = Conversation.create!(title: "Second", initiator: @user, status: "resolved")
     conv3 = Conversation.create!(title: "Third", initiator: @user, status: "resolved")
-    
+
     assignment1 = ExpertAssignment.create!(conversation: conv1, expert: @expert, status: "resolved", assigned_at: 3.days.ago)
     assignment2 = ExpertAssignment.create!(conversation: conv2, expert: @expert, status: "resolved", assigned_at: 2.days.ago)
     assignment3 = ExpertAssignment.create!(conversation: conv3, expert: @expert, status: "resolved", assigned_at: 1.day.ago)
-    
+
     get "/expert/assignments/history", headers: { "Authorization" => "Bearer #{@expert_token}" }
     assert_response :ok
     response_data = JSON.parse(response.body)

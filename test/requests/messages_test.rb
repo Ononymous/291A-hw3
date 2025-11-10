@@ -36,7 +36,7 @@ class MessagesTest < ActionDispatch::IntegrationTest
     Message.create!(conversation: @conversation, sender: @expert, sender_role: "expert", content: "Second message")
     sleep 0.01
     Message.create!(conversation: @conversation, sender: @user, sender_role: "initiator", content: "Third message")
-    
+
     get "/conversations/#{@conversation.id}/messages", headers: { "Authorization" => "Bearer #{@token}" }
     assert_response :ok
     response_data = JSON.parse(response.body)
@@ -133,7 +133,7 @@ class MessagesTest < ActionDispatch::IntegrationTest
     other_user = User.create!(username: "otheruser", password: "password123")
     other_conversation = Conversation.create!(title: "Other", initiator: other_user, status: "waiting")
     message = Message.create!(conversation: other_conversation, sender: other_user, sender_role: "initiator", content: "Test")
-    
+
     put "/messages/#{message.id}/read", headers: { "Authorization" => "Bearer #{@token}" }
     assert_response :not_found
   end

@@ -1,8 +1,8 @@
 class ApplicationController < ActionController::API
   include ActionController::Cookies
-  
+
   private
-  
+
   # Helper method to format user JSON
   def user_json(user)
     {
@@ -12,7 +12,7 @@ class ApplicationController < ActionController::API
       last_active_at: user.last_active_at&.iso8601
     }
   end
-  
+
   # Helper method to format conversation JSON
   def conversation_json(conversation, user)
     {
@@ -29,7 +29,7 @@ class ApplicationController < ActionController::API
       unreadCount: conversation.unread_count_for(user)
     }
   end
-  
+
   # Helper method to format message JSON
   def message_json(message)
     {
@@ -43,7 +43,7 @@ class ApplicationController < ActionController::API
       isRead: message.is_read
     }
   end
-  
+
   # Helper method to format expert profile JSON
   def expert_profile_json(profile)
     {
