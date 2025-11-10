@@ -22,7 +22,8 @@ class ExpertController < ApplicationController
       return
     end
     
-    @conversation.update(assigned_expert_id: current_user.id, status: 'active')
+    # Update conversation status and assigned expert, touch will update updated_at
+    @conversation.update!(assigned_expert_id: current_user.id, status: 'active')
     
     # Create expert assignment record
     ExpertAssignment.create!(
@@ -40,7 +41,8 @@ class ExpertController < ApplicationController
       return
     end
     
-    @conversation.update(assigned_expert_id: nil, status: 'waiting')
+    # Update conversation status, touch will update updated_at
+    @conversation.update!(assigned_expert_id: nil, status: 'waiting')
     
     # Update expert assignment to resolved
     assignment = @conversation.expert_assignments.find_by(expert_id: current_user.id, status: 'active')

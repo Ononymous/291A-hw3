@@ -11,10 +11,10 @@ class UpdatesController < ApplicationController
       return
     end
     
-    # Get conversations updated since the given timestamp
+    # Get conversations updated since the given timestamp (inclusive)
     conversations = Conversation.where(initiator_id: user.id)
                                 .or(Conversation.where(assigned_expert_id: user.id))
-                                .where('updated_at > ?', since)
+                                .where('updated_at >= ?', since)
                                 .order(updated_at: :desc)
     
     render json: conversations.map { |c| conversation_json(c, user) }, status: :ok
@@ -30,13 +30,13 @@ class UpdatesController < ApplicationController
       return
     end
     
-    # Get messages from conversations the user is part of, created since the given timestamp
+    # Get messages from conversations the user is part of, created since the given timestamp (inclusive)
     conversation_ids = Conversation.where(initiator_id: user.id)
                                    .or(Conversation.where(assigned_expert_id: user.id))
                                    .pluck(:id)
     
     messages = Message.where(conversation_id: conversation_ids)
-                     .where('created_at > ?', since)
+                     .where('created_at >= ?', since)
                      .includes(:sender)
                      .order(created_at: :desc)
     
@@ -53,14 +53,14 @@ class UpdatesController < ApplicationController
       return
     end
     
-    # Get waiting conversations updated since timestamp
+    # Get waiting conversations updated since timestamp (inclusive)
     waiting_conversations = Conversation.where(status: 'waiting')
-                                       .where('updated_at > ?', since)
+                                       .where('updated_at >= ?', since)
                                        .order(created_at: :asc)
     
-    # Get assigned conversations updated since timestamp
+    # Get assigned conversations updated since timestamp (inclusive)
     assigned_conversations = Conversation.where(assigned_expert_id: expert.id, status: 'active')
-                                        .where('updated_at > ?', since)
+                                        .where('updated_at >= ?', since)
                                         .order(updated_at: :desc)
     
     render json: {

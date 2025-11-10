@@ -13,6 +13,7 @@ class Message < ApplicationRecord
   private
   
   def update_conversation_last_message_at
-    conversation.update(last_message_at: created_at)
+    # Update both last_message_at and updated_at (via touch) to trigger polling updates
+    conversation.update_columns(last_message_at: created_at, updated_at: Time.current)
   end
 end
