@@ -45,6 +45,10 @@ class AuthTest < ActionDispatch::IntegrationTest
   end
 
   test "POST /auth/logout returns success message" do
+    user = User.create!(username: "testlogout", password: "password123")
+    post "/auth/login", params: { username: user.username, password: "password123" }
+    assert_response :ok
+    
     post "/auth/logout"
     assert_response :ok
     response_data = JSON.parse(response.body)
